@@ -21,3 +21,8 @@
 - Retention analysis (7d/30d by subscription tier) produced non-trivial, non-degenerate numbers despite signup_date and watch_date being generated independently — driven by natural overlap in their date ranges. Noted as a limitation: the pattern isn't strictly monotonic by tier, since no deliberate tier→retention correlation was built in.
 - ANOVA on watch_duration_pct across device and subscription_tier came back statistically significant (p<0.001 for both) but with small effect sizes (<2 percentage points between groups) — a direct result of the large sample size (100,836 rows) making trivial differences "significant." Used as a deliberate talking point on statistical vs. practical significance rather than treated as a bug.
 
+## Phase 3 — Recommendation Engine
+- Content-based filtering (TF-IDF + cosine similarity on genres) produced sensible, interpretable results (e.g. Toy Story matched with other family/animation titles; The Matrix matched with sci-fi/action thrillers).
+- Collaborative filtering (ALS matrix factorization via `implicit`, 50 factors) trained cleanly on the real ratings matrix and produced distinctly different, personalized recommendations per user based on latent taste patterns.
+- Evaluated collaborative filtering with an 80/20 per-user train/test split (held-out ratings ≥4.0 treated as "relevant"): achieved Precision@10 = 0.181, Recall@10 = 0.197 across 597 evaluable users — in line with typical benchmarks for this dataset size/algorithm.
+- Selected collaborative filtering (ALS) as the "new" algorithm to carry into the Phase 5 A/B test, since it has a measurable precision/recall baseline; content-based filtering will remain as a secondary/cold-start approach in the writeup rather than the A/B test candidate.
