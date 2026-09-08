@@ -32,3 +32,10 @@
 - First attempt at popularity-weighted re-ranking showed a *negative* lift (-10%), traced to a real methodology flaw: search targets were originally sampled uniformly at random, independent of popularity, so there was no real signal for a popularity-based re-ranker to exploit — and the initial evaluation only used clicked rows, introducing additional bias.
 - Fixed by (1) evaluating on the full search_logs table via a new `searched_movie_id` column (not just clicked rows), and (2) regenerating search logs with popularity-weighted target sampling (using real rating counts) to mimic realistic user search behavior.
 - After the fix: popularity-weighted re-ranking achieved a genuine +25.5 percentage point (46.6% relative) lift in expected CTR — a defensible, mechanistically sound result.
+
+## Phase 5 — A/B Test (Experimentation)
+- Sample size calculation (Cohen's d=0.3, power=0.8, alpha=0.05) required 175 users/group; our 610-user base (split ~305/305) comfortably exceeds this, so the test is adequately powered.
+- First run of the A/B test produced a NaN result for the treatment group — root cause: `watch_events` was derived entirely from `ratings` in Phase 1, so ALS's `filter_already_liked_items=True` structurally excluded every movie a user had watched, making overlap impossible by design (not a random bug).
+- Fixed by training ALS on an 80% split of ratings and using the held-out 20% as "unseen" ground truth (same technique as the Phase 3 evaluation), allowing genuine overlap between recommendations and actual watch history.
+- Final result: Control (trending) mean watch% = 81.09, Treatment (ALS) mean watch% = 80.23. Lift = -0.86pp, p=0.4873 — not statistically significant.
+- This null result is expected and consistent with the data design: `watch_duration_pct` was built purely from real `rating` values (Phase 1), independent of which algorithm surfaced the movie, so no causal link between recommendation source and engagement was ever built into the data. Framed in the writeup as a demonstration of the difference between retrospective/proxy experimentation and true randomized live experiments — not as a failed test.
