@@ -21,11 +21,21 @@ print("Schema ensured.")
 users = pd.read_sql("SELECT user_id FROM users", engine)
 movies = pd.read_sql("SELECT movie_id, title FROM movies", engine)
 
+# real popularity signal, so search targets are weighted like real user behavior
+# (people search for popular/trending things more often than obscure ones)
+popularity = pd.read_sql("""
+    SELECT movie_id, COUNT(*) AS num_ratings
+    FROM ratings
+    GROUP BY movie_id
+""", engine)
+movies = movies.merge(popularity, on="movie_id", how="left").fillna({"num_ratings": 1})
+movie_weights = movies["num_ratings"] / movies["num_ratings"].sum()
+
 rows = []
 for _, user in users.iterrows():
     num_searches = np.random.randint(1, 15)  # each user searches a few times
     for _ in range(num_searches):
-        sampled_movie = movies.sample(1).iloc[0]
+        sampled_movie = movies.sample(1, weights=movie_weights).iloc[0]
         search_query = sampled_movie["title"].split("(")[0].strip()
 
         result_rank = np.random.randint(1, 11)  # position 1-10 in search results
@@ -34,12 +44,13 @@ for _, user in users.iterrows():
         click_prob = max(0.9 - (result_rank - 1) * 0.08, 0.05)
         clicked = np.random.random() < click_prob
         clicked_movie_id = sampled_movie["movie_id"] if clicked else None
-
+        searched_movie_id = sampled_movie["movie_id"]  # the movie actually shown, click or not
         search_timestamp = fake.date_time_between(start_date="-1y", end_date="now")
 
         rows.append({
             "user_id": user["user_id"],
             "search_query": search_query,
+            "searched_movie_id": searched_movie_id,
             "clicked_movie_id": clicked_movie_id,
             "search_timestamp": search_timestamp,
             "result_rank": result_rank

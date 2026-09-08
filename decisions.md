@@ -26,3 +26,9 @@
 - Collaborative filtering (ALS matrix factorization via `implicit`, 50 factors) trained cleanly on the real ratings matrix and produced distinctly different, personalized recommendations per user based on latent taste patterns.
 - Evaluated collaborative filtering with an 80/20 per-user train/test split (held-out ratings ≥4.0 treated as "relevant"): achieved Precision@10 = 0.181, Recall@10 = 0.197 across 597 evaluable users — in line with typical benchmarks for this dataset size/algorithm.
 - Selected collaborative filtering (ALS) as the "new" algorithm to carry into the Phase 5 A/B test, since it has a measurable precision/recall baseline; content-based filtering will remain as a secondary/cold-start approach in the writeup rather than the A/B test candidate.
+
+## Phase 4 — Search Relevance
+- Initial CTR-by-rank analysis showed a clean decay curve (91% CTR at rank 1 down to 15.3% at rank 10), confirming the rank-weighted click probability built into the synthetic data.
+- First attempt at popularity-weighted re-ranking showed a *negative* lift (-10%), traced to a real methodology flaw: search targets were originally sampled uniformly at random, independent of popularity, so there was no real signal for a popularity-based re-ranker to exploit — and the initial evaluation only used clicked rows, introducing additional bias.
+- Fixed by (1) evaluating on the full search_logs table via a new `searched_movie_id` column (not just clicked rows), and (2) regenerating search logs with popularity-weighted target sampling (using real rating counts) to mimic realistic user search behavior.
+- After the fix: popularity-weighted re-ranking achieved a genuine +25.5 percentage point (46.6% relative) lift in expected CTR — a defensible, mechanistically sound result.

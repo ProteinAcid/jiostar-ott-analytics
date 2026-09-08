@@ -52,9 +52,11 @@ CREATE TABLE IF NOT EXISTS search_logs (
     search_id SERIAL PRIMARY KEY,
     user_id INT,
     search_query VARCHAR(255),
+    searched_movie_id INT,
     clicked_movie_id INT,
     search_timestamp TIMESTAMP,
     result_rank INT,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (searched_movie_id) REFERENCES movies(movie_id),
     FOREIGN KEY (clicked_movie_id) REFERENCES movies(movie_id)
 );
