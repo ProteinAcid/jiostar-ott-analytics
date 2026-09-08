@@ -15,3 +15,9 @@
   - `search_logs` click-through is rank-weighted (higher search rank → higher click probability) to simulate realistic CTR decay.
 - All schema constraints (composite primary keys, foreign keys) were added explicitly rather than relying on default types — required fixing an early mistake where `users` was auto-created without a primary key by pandas `to_sql`, which broke a downstream foreign key on `watch_events`.
 - Final row counts verified: movies 9742, ratings 100836, tags 3683, links 9742, users 610, watch_events 100836, search_logs 4516.
+
+## Phase 2 — Content & Engagement Analytics
+- Content performance scoring (avg completion %, early drop-off) confirmed highly-rated classics naturally surfaced with near-zero drop-off — consistent with the rating→completion correlation built into the data.
+- Retention analysis (7d/30d by subscription tier) produced non-trivial, non-degenerate numbers despite signup_date and watch_date being generated independently — driven by natural overlap in their date ranges. Noted as a limitation: the pattern isn't strictly monotonic by tier, since no deliberate tier→retention correlation was built in.
+- ANOVA on watch_duration_pct across device and subscription_tier came back statistically significant (p<0.001 for both) but with small effect sizes (<2 percentage points between groups) — a direct result of the large sample size (100,836 rows) making trivial differences "significant." Used as a deliberate talking point on statistical vs. practical significance rather than treated as a bug.
+

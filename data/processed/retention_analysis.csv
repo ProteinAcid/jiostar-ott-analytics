@@ -1,0 +1,4 @@
+subscription_tier,total_users,active_within_7d,active_within_30d,retention_7d_pct,retention_30d_pct
+Basic,226,85,132,37.6,58.4
+Premium,196,88,100,44.9,51.0
+Free,188,54,86,28.7,45.7
